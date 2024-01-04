@@ -1,2 +1,2 @@
 # Attendance-mobile-application
-An attendance application for mobile platforms using python.
+An attendance application for mobile platforms using python. This is an application that keeps track of daily attendance by scanning QR code using the mobile platforms. Key features are that it will send an SMS regarding the students attendance to their parents and the admin could be able to get a daily report via e-mail. This application is developed using python programming language for the basic functionalities, kivy for the platform independancy and user interface and SQLite for the database. 
