@@ -1,11 +1,11 @@
 # Attendance Application
 
-##Introduction
+## Introduction
 
 ###Project Overview
 The Attendance App is designed to automate the process of recording student attendance using QR codes. The app simplifies attendance tracking, provides a user-friendly interface, and allows for efficient reporting.
 
-###Objectives
+### Objectives
 - Automate attendance recording.
 - Provide a user-friendly interface for both students and administrators.
 - Generate attendance reports for specific dates.
