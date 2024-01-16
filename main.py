@@ -3,34 +3,37 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.popup import Popup
 from zxing import BarCodeReader
+import qrcode
 import sqlite3
-from twilio.rest import Client
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import pandas as pd
+#from twilio.rest import Client
+#import smtplib
+#from email.mime.text import MIMEText
+#from email.mime.multipart import MIMEMultipart
+#import pandas as pd
 
 class AttendanceApp(App):
     def build(self):
         self.conn = sqlite3.connect('attendance.db')
         self.cur = self.conn.cursor()
 
-        self.cur.execute('CREATE TABLE IF NOT EXISTS users (roll_number TEXT PRIMARY KEY, name TEXT, specialization TEXT)')
+        self.cur.execute('CREATE TABLE IF NOT EXISTS users (roll_number TEXT PRIMARY KEY, name TEXT, specialization TEXT, phone_number INT)')
         self.cur.execute('CREATE TABLE IF NOT EXISTS attendance (roll_number TEXT, entry_time TEXT, exit_time TEXT, date TEXT)')
 
         layout = BoxLayout(orientation='vertical')
 
         self.label = Label(text='Scan QR Code for Attendance')
-        self.btn_scan = Button(text='Scan QR Code', on_press=self.scan_qr)
+        self.btn_scan = Button(text='Scan QR Code') #on_press=self.scan_qr
         self.btn_register = Button(text='Register User', on_press=self.show_registration_popup)
-        self.btn_get_report = Button(text='Get Report', on_press=self.send_report)
+        self.btn_get_report = Button(text='Get Report')#on_press=self.send_report)
 
         layout.add_widget(self.label)
         layout.add_widget(self.btn_scan)
         layout.add_widget(self.btn_register)
-        layout.add_widget(self.btn_entry)
-        layout.add_widget(self.btn_exit)
+        #layout.add_widget(self.btn_entry)
+        layout.add_widget(self.btn_get_report)
 
         return layout
 
@@ -42,33 +45,19 @@ class AttendanceApp(App):
         self.name_input = TextInput(hint_text='Name')
         self.specialization_input = TextInput(hint_text='Specialization')
         self.phone_number_input = TextInput(hint_text='Parent mobile number')
-        popup_register_button = Button(text='Register', on_press=self.register_user)
+        self.popup_register_button = Button(text='Nejama pannata', on_press=self.register_user)
 
         popup_layout.add_widget(popup_label)
         popup_layout.add_widget(self.roll_number_input)
         popup_layout.add_widget(self.name_input)
         popup_layout.add_widget(self.specialization_input)
-        popup_layout.add_widget(popup_register_button)
+        popup_layout.add_widget(self.phone_number_input)
+        popup_layout.add_widget(self.popup_register_button)
 
         popup = Popup(title='User Registration', content=popup_layout, size_hint=(None, None), size=(300, 200))
         popup.open()
 
-    def register_user(self, instance):
-        # Insert new user into the database
-        roll_number = self.roll_number_input.text
-        name = self.name_input.text
-        specialization = self.specialization_input.text
-        #parents phone number should be entered
-        generate_qr_code(roll_number, name, specialization)
-
-        self.cur.execute('INSERT OR REPLACE INTO users VALUES (?, ?, ?)', (roll_number, name, specialization, phone_number))
-        self.conn.commit()
-
-
-        # Close the popup after registration
-        instance.parent.parent.dismiss()
-
-    def generate_qr_code(roll_number, name, specialization):
+    def generate_qr_code(self,roll_number, name, specialization, phone_number):
         data = f"Roll Number: {roll_number}\nName: {name}\nSpecialization: {specialization}"
         qr = qrcode.QRCode(
             version=1,
@@ -80,10 +69,27 @@ class AttendanceApp(App):
         qr.make(fit=True)
 
         img = qr.make_image(fill_color="black", back_color="white")
-        img.save(roll_number-name.png)
+        img.save(f"{roll_number}-{name}.png")
+
+    def register_user(self, instance):
+        # Insert new user into the database
+        roll_number = self.roll_number_input.text
+        name = self.name_input.text
+        specialization = self.specialization_input.text
+        phone_number = self.phone_number_input.text
+        #parents phone number should be entered
+        self.generate_qr_code(roll_number,name,specialization,phone_number)
+        self.cur.execute('INSERT OR REPLACE INTO users VALUES (?, ?, ?, ?)', (roll_number, name, specialization, phone_number))
+        self.conn.commit()
 
 
-    def extract_roll_number(decoded_data):
+        # Close the popup after registration
+
+
+
+
+
+    """def extract_roll_number(decoded_data):
         # Extract roll number from the decoded data
         roll_number_prefix = "Roll Number: "
         roll_number_start = decoded_data.find(roll_number_prefix)
@@ -194,6 +200,6 @@ class AttendanceApp(App):
             server.starttls()
             server.login(email_sender, email_password)
             server.sendmail(email_sender, email_receiver, msg.as_string())
-
+"""
 if __name__ == '__main__':
     AttendanceApp().run()
